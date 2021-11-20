@@ -22,6 +22,7 @@ type HelloServiceClient interface {
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	Delay(ctx context.Context, in *DelayReq, opts ...grpc.CallOption) (*DelayResp, error)
 	HelloAgain(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
+	MetaInfo(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error)
 }
 
 type helloServiceClient struct {
@@ -59,6 +60,15 @@ func (c *helloServiceClient) HelloAgain(ctx context.Context, in *HelloRequest, o
 	return out, nil
 }
 
+func (c *helloServiceClient) MetaInfo(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error) {
+	out := new(EmptyResp)
+	err := c.cc.Invoke(ctx, "/helloservice.HelloService/MetaInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HelloServiceServer is the server API for HelloService service.
 // All implementations must embed UnimplementedHelloServiceServer
 // for forward compatibility
@@ -67,6 +77,7 @@ type HelloServiceServer interface {
 	Hello(context.Context, *HelloRequest) (*HelloReply, error)
 	Delay(context.Context, *DelayReq) (*DelayResp, error)
 	HelloAgain(context.Context, *HelloRequest) (*HelloReply, error)
+	MetaInfo(context.Context, *EmptyReq) (*EmptyResp, error)
 	mustEmbedUnimplementedHelloServiceServer()
 }
 
@@ -82,6 +93,9 @@ func (UnimplementedHelloServiceServer) Delay(context.Context, *DelayReq) (*Delay
 }
 func (UnimplementedHelloServiceServer) HelloAgain(context.Context, *HelloRequest) (*HelloReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HelloAgain not implemented")
+}
+func (UnimplementedHelloServiceServer) MetaInfo(context.Context, *EmptyReq) (*EmptyResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MetaInfo not implemented")
 }
 func (UnimplementedHelloServiceServer) mustEmbedUnimplementedHelloServiceServer() {}
 
@@ -150,6 +164,24 @@ func _HelloService_HelloAgain_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HelloService_MetaInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HelloServiceServer).MetaInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/helloservice.HelloService/MetaInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HelloServiceServer).MetaInfo(ctx, req.(*EmptyReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // HelloService_ServiceDesc is the grpc.ServiceDesc for HelloService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -168,6 +200,10 @@ var HelloService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HelloAgain",
 			Handler:    _HelloService_HelloAgain_Handler,
+		},
+		{
+			MethodName: "MetaInfo",
+			Handler:    _HelloService_MetaInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
