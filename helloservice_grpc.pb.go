@@ -21,6 +21,7 @@ type HelloServiceClient interface {
 	// Sends a greeting
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	ContextTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error)
+	HelloAgain(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 }
 
 type helloServiceClient struct {
@@ -49,6 +50,15 @@ func (c *helloServiceClient) ContextTest(ctx context.Context, in *EmptyReq, opts
 	return out, nil
 }
 
+func (c *helloServiceClient) HelloAgain(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
+	out := new(HelloReply)
+	err := c.cc.Invoke(ctx, "/helloservice.HelloService/HelloAgain", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HelloServiceServer is the server API for HelloService service.
 // All implementations must embed UnimplementedHelloServiceServer
 // for forward compatibility
@@ -56,6 +66,7 @@ type HelloServiceServer interface {
 	// Sends a greeting
 	Hello(context.Context, *HelloRequest) (*HelloReply, error)
 	ContextTest(context.Context, *EmptyReq) (*EmptyResp, error)
+	HelloAgain(context.Context, *HelloRequest) (*HelloReply, error)
 	mustEmbedUnimplementedHelloServiceServer()
 }
 
@@ -68,6 +79,9 @@ func (UnimplementedHelloServiceServer) Hello(context.Context, *HelloRequest) (*H
 }
 func (UnimplementedHelloServiceServer) ContextTest(context.Context, *EmptyReq) (*EmptyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ContextTest not implemented")
+}
+func (UnimplementedHelloServiceServer) HelloAgain(context.Context, *HelloRequest) (*HelloReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HelloAgain not implemented")
 }
 func (UnimplementedHelloServiceServer) mustEmbedUnimplementedHelloServiceServer() {}
 
@@ -118,6 +132,24 @@ func _HelloService_ContextTest_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HelloService_HelloAgain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HelloRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HelloServiceServer).HelloAgain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/helloservice.HelloService/HelloAgain",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HelloServiceServer).HelloAgain(ctx, req.(*HelloRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // HelloService_ServiceDesc is the grpc.ServiceDesc for HelloService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -132,6 +164,10 @@ var HelloService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ContextTest",
 			Handler:    _HelloService_ContextTest_Handler,
+		},
+		{
+			MethodName: "HelloAgain",
+			Handler:    _HelloService_HelloAgain_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
