@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type HelloServiceClient interface {
 	// Sends a greeting
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
-	ContextTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error)
+	Delay(ctx context.Context, in *DelayReq, opts ...grpc.CallOption) (*DelayResp, error)
 	HelloAgain(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 }
 
@@ -41,9 +41,9 @@ func (c *helloServiceClient) Hello(ctx context.Context, in *HelloRequest, opts .
 	return out, nil
 }
 
-func (c *helloServiceClient) ContextTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error) {
-	out := new(EmptyResp)
-	err := c.cc.Invoke(ctx, "/helloservice.HelloService/ContextTest", in, out, opts...)
+func (c *helloServiceClient) Delay(ctx context.Context, in *DelayReq, opts ...grpc.CallOption) (*DelayResp, error) {
+	out := new(DelayResp)
+	err := c.cc.Invoke(ctx, "/helloservice.HelloService/Delay", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (c *helloServiceClient) HelloAgain(ctx context.Context, in *HelloRequest, o
 type HelloServiceServer interface {
 	// Sends a greeting
 	Hello(context.Context, *HelloRequest) (*HelloReply, error)
-	ContextTest(context.Context, *EmptyReq) (*EmptyResp, error)
+	Delay(context.Context, *DelayReq) (*DelayResp, error)
 	HelloAgain(context.Context, *HelloRequest) (*HelloReply, error)
 	mustEmbedUnimplementedHelloServiceServer()
 }
@@ -77,8 +77,8 @@ type UnimplementedHelloServiceServer struct {
 func (UnimplementedHelloServiceServer) Hello(context.Context, *HelloRequest) (*HelloReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
 }
-func (UnimplementedHelloServiceServer) ContextTest(context.Context, *EmptyReq) (*EmptyResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ContextTest not implemented")
+func (UnimplementedHelloServiceServer) Delay(context.Context, *DelayReq) (*DelayResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delay not implemented")
 }
 func (UnimplementedHelloServiceServer) HelloAgain(context.Context, *HelloRequest) (*HelloReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HelloAgain not implemented")
@@ -114,20 +114,20 @@ func _HelloService_Hello_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _HelloService_ContextTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyReq)
+func _HelloService_Delay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelayReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(HelloServiceServer).ContextTest(ctx, in)
+		return srv.(HelloServiceServer).Delay(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/helloservice.HelloService/ContextTest",
+		FullMethod: "/helloservice.HelloService/Delay",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HelloServiceServer).ContextTest(ctx, req.(*EmptyReq))
+		return srv.(HelloServiceServer).Delay(ctx, req.(*DelayReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -162,8 +162,8 @@ var HelloService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _HelloService_Hello_Handler,
 		},
 		{
-			MethodName: "ContextTest",
-			Handler:    _HelloService_ContextTest_Handler,
+			MethodName: "Delay",
+			Handler:    _HelloService_Delay_Handler,
 		},
 		{
 			MethodName: "HelloAgain",
